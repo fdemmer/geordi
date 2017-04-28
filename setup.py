@@ -3,11 +3,16 @@
 
 import os
 import sys
-from distutils.core import setup
+from setuptools import setup, find_packages
+
 
 def long_description():
     """Get the long description from the README"""
-    return open(os.path.join(sys.path[0], 'README.rst')).read()
+    f = open(os.path.join(sys.path[0], 'README.rst'))
+    try:
+        return f.read()
+    finally:
+        f.close()
 
 setup(
     author='Brodie Rao',
@@ -28,16 +33,18 @@ setup(
     ],
     description='A Django middleware for interactive profiling',
     dependency_links=[
-        'https://bitbucket.org/brodie/gprof2dot/get/3d61cf0a321e06edc252d45e135ffea2bd16c1cc.tar.gz#egg=gprof2dot-dev'
+        'https://bitbucket.org/bitbucket/gprof2dot/get/116454888109e59df656ef456e60bc2df08fd53b.tar.gz#egg=gprof2dot-bitbucket_visjs'
     ],
     download_url='https://bitbucket.org/brodie/geordi/get/0.3.tar.gz',
-    install_requires=['gprof2dot==dev'],
+    install_requires=['gprof2dot==bitbucket_visjs'],
     keywords='django graph profiler',
     license='GNU Lesser GPL',
     long_description=long_description(),
     name='geordi',
-    packages=['geordi'],
+    packages=find_packages(),
+    include_package_data=True,
+    package_data={'geordi': ['static/**/*', 'templates/**/*']},
     scripts=['scripts/geordi'],
     url='https://bitbucket.org/brodie/geordi',
-    version='0.3',
+    version='0.4',
 )

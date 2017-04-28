@@ -1,0 +1,39 @@
+{% load static %}
+<html>
+    <head>
+        <title>Profile data for {{ url }}</title>
+        <script src="{% static 'geordi/js/vis.min.js' %}"></script>
+        <script src="{% static 'geordi/js/geordi.js' %}"></script>
+        <link href="{% static 'geordi/css/vis.min.css' %}" rel="stylesheet">
+        <style type="text/css">
+            #spinner {
+                width: 500px;
+                height: 266px;
+
+                position: absolute;
+                z-index: 2;
+                top:0;
+                bottom: 0;
+                left: 0;
+                right: 0;
+
+                margin: auto;
+                background: url("{% static 'geordi/img/data.gif' %}") no-repeat center;
+            }
+            #freeze {
+                position: absolute;
+                z-index: 3;
+                bottom: 0;
+                left: 0;
+                margin: 10;
+                font-family: "sans-serif";
+                font-size: 22px;
+            }
+        </style>
+    </head>
+    <body>
+        <button id="freeze"><span style="text-decoration: underline">S</span>top jiggling!</button>
+        <div id="spinner"></div>
+        <div id="graph" data-dotstring="{{ dotstring }}"></div>
+    </body>
+</html>

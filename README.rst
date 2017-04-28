@@ -18,11 +18,7 @@ profile pages.
 Installation
 ------------
 
-Before you get started, make sure you have `GraphViz`_ installed.
-
 After you've done ``pip install geordi``, add ``'geordi'`` to the
 ``INSTALLED_APPS`` setting, and add ``'geordi.VisorMiddleware'`` to the
 ``MIDDLEWARE_CLASSES`` setting. You'll probably want to put it after Django's
 authentication middleware and before everything else.
-
-.. _GraphViz: http://www.graphviz.org/
