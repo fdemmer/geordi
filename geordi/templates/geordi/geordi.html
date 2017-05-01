@@ -1,7 +1,7 @@
-{% load static %}
 <html>
+{% load static %}
     <head>
-        <title>Profile data for {{ url }}</title>
+        <title>Profile data for {{ method }} {{ url }}</title>
         <script src="{% static 'geordi/js/vis.min.js' %}"></script>
         <script src="{% static 'geordi/js/geordi.js' %}"></script>
         <link href="{% static 'geordi/css/vis.min.css' %}" rel="stylesheet">

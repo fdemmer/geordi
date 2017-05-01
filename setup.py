@@ -32,11 +32,7 @@ setup(
         'Topic :: Utilities',
     ],
     description='A Django middleware for interactive profiling',
-    dependency_links=[
-        'https://bitbucket.org/bitbucket/gprof2dot/get/116454888109e59df656ef456e60bc2df08fd53b.tar.gz#egg=gprof2dot-bitbucket_visjs'
-    ],
-    download_url='https://bitbucket.org/brodie/geordi/get/0.3.tar.gz',
-    install_requires=['gprof2dot==bitbucket_visjs'],
+    download_url='https://bitbucket.org/bitbucket/geordi/get/0.4.tar.gz',
     keywords='django graph profiler',
     license='GNU Lesser GPL',
     long_description=long_description(),
@@ -44,7 +40,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     package_data={'geordi': ['static/**/*', 'templates/**/*']},
-    scripts=['scripts/geordi'],
-    url='https://bitbucket.org/brodie/geordi',
+    scripts=['scripts/geordi', 'scripts/gprof2dot'],
+    url='https://bitbucket.org/bitbucket/geordi',
     version='0.4',
 )

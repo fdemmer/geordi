@@ -1,7 +1,6 @@
 """A Django middleware for interactive profiling"""
 
 import cProfile
-import json
 import marshal
 import optparse
 import os
@@ -11,6 +10,7 @@ import sys
 import tempfile
 import webbrowser
 from wsgiref.simple_server import make_server
+from wsgiref.util import request_uri
 
 try:
     from urllib.parse import parse_qs
@@ -18,7 +18,6 @@ except ImportError:
     from urlparse import parse_qs
 
 from django.template.loader import render_to_string
-from django.utils.safestring import mark_safe
 
 __all__ = ['HolodeckException', 'VisorMiddleware']
 
@@ -47,25 +46,20 @@ class VisorMiddleware(object):
             stats.write(marshal.dumps(profiler.stats))
             stats.flush()
 
-            p = subprocess.Popen(['gprof2dot.py', '-f', 'pstats', stats.name],
+            p = subprocess.Popen(['gprof2dot', '-f', 'pstats', stats.name],
                                  stdin=subprocess.PIPE, stdout=subprocess.PIPE)
             p.stdin.close()
             output = p.stdout.read()
             retcode = p.wait()
             if retcode:
-                raise HolodeckException('gprof2dot.py exited with %d'
+                raise HolodeckException('gprof2dot exited with %d'
                                         % retcode)
 
-            url = environ['REQUEST_METHOD'] + ' '
-            if environ['SCRIPT_NAME']:
-                url += environ['SCRIPT_NAME']
-            if environ['PATH_INFO']:
-                url += environ['PATH_INFO']
-            if environ['QUERY_STRING']:
-                url += '?' + environ['QUERY_STRING']
-            body = render_to_string('geordi/geordi.html',
-                                    {'dotstring': output,
-                                     'url': url}).encode('utf-8')
+            body = render_to_string(
+                'geordi/geordi.html',
+                {'dotstring': output,
+                 'method': environ['REQUEST_METHOD'],
+                 'url': request_uri(environ, include_query=1)}).encode('utf-8')
             headers = [('Content-Type', 'text/html; charset=utf-8'),
                        ('X-Geordi-Served-By', socket.gethostname()),
                        ('Content-Length', str(len(body)))]
