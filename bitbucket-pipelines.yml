@@ -9,11 +9,11 @@ pipelines:
   branches:
     master:
       - step:
-        script:
-          - bin/deploy
+          script:
+            - bin/deploy
 
   custom:
     deploy:
       - step:
-        script:
-          - bin/deploy
+          script:
+            - bin/deploy
