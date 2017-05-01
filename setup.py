@@ -6,9 +6,8 @@ import sys
 from setuptools import setup, find_packages
 
 
-def long_description():
-    """Get the long description from the README"""
-    f = open(os.path.join(sys.path[0], 'README.rst'))
+def readfile(fn):
+    f = open(os.path.join(sys.path[0], fn))
     try:
         return f.read()
     finally:
@@ -35,12 +34,12 @@ setup(
     download_url='https://bitbucket.org/bitbucket/geordi/get/0.4.tar.gz',
     keywords='django graph profiler',
     license='GNU Lesser GPL',
-    long_description=long_description(),
+    long_description=readfile('README.rst'),
     name='geordi',
     packages=find_packages(),
     include_package_data=True,
     package_data={'geordi': ['static/**/*', 'templates/**/*']},
     scripts=['scripts/geordi', 'scripts/gprof2dot'],
     url='https://bitbucket.org/bitbucket/geordi',
-    version='0.4',
+    version=readfile('version.txt').strip(),
 )
