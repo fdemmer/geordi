@@ -1,0 +1,23 @@
+#!/bin/bash
+
+set -e
+
+# Get the next build number from the inc-service
+# For new builds, generate a token for your own counter by doing
+# a POST to https://inc-service.useast.atlassian.io/new
+BUILD_NUMBER=$(curl -f -X PUT https://inc-service.useast.atlassian.io/${COUNTER_TOKEN})
+BUILD_VERSION=$(cat version.txt).${BUILD_NUMBER}
+echo "$BUILD_VERSION" > version.txt
+
+echo """
+[distutils]
+index-servers = bitbucket-local
+
+[bitbucket-local]
+repository: https://$PYPI_URL
+username: $PYPI_USERNAME
+password: $PYPI_PASSWORD
+""" > ~/.pypirc
+
+# Build the package and upload to Artifactory
+python setup.py sdist upload -r bitbucket-local
