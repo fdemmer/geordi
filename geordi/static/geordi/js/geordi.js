@@ -77,14 +77,12 @@ window.onload = function() {
   network.on('stabilized', function () {
     document.getElementById('spinner').hidden = true;
     document.getElementById('freeze').hidden = true;
-    console.log('Stabilized');
   });
   network.on('startStabilizing', function () {
     document.getElementById('freeze').hidden = false;
   });
   document.getElementById('freeze').onclick = function () {
     network.stopSimulation();
-    console.log('Clicked');
   };
   document.onkeydown = function (e) {
     e = e || window.event;

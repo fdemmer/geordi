@@ -1394,7 +1394,7 @@ class PerfParser(LineParser):
     It expects output generated with
 
         perf record -g
-        perf script | gprof2dot --format=perf
+        perf script | gprof2dot.py --format=perf
     """
 
     def __init__(self, infile):
