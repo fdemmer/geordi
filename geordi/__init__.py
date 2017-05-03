@@ -2,15 +2,9 @@
 
 import cProfile
 import marshal
-import optparse
-import os
 import socket
 import subprocess
-import sys
 import tempfile
-import webbrowser
-from wsgiref.simple_server import make_server
-from wsgiref.util import request_uri
 
 try:
     from urllib.parse import parse_qs
@@ -38,7 +32,7 @@ class VisorMiddleware(object):
         if allowedfunc is not None:
             self._allowed = allowedfunc
 
-    def _response(self, environ, profiler):
+    def _response(self, profiler):
         profiler.create_stats()
 
         with tempfile.NamedTemporaryFile(prefix='geordi-', suffix='.pstats'
@@ -55,11 +49,8 @@ class VisorMiddleware(object):
                 raise HolodeckException('gprof2dot exited with %d'
                                         % retcode)
 
-            body = render_to_string(
-                'geordi/geordi.html',
-                {'dotstring': output,
-                 'method': environ['REQUEST_METHOD'],
-                 'url': request_uri(environ, include_query=1)}).encode('utf-8')
+            body = str(render_to_string('geordi/geordi.html',
+                                        {'dotstring': output}).encode('utf-8'))
             headers = [('Content-Type', 'text/html; charset=utf-8'),
                        ('X-Geordi-Served-By', socket.gethostname()),
                        ('Content-Length', str(len(body)))]
@@ -79,7 +70,7 @@ class VisorMiddleware(object):
 
         profiler = cProfile.Profile()
         profiler.runcall(self._app, environ, dummy_start_response)
-        headers, output = self._response(environ, profiler)
+        headers, output = self._response(profiler)
         start_response('200 OK', headers)
         return [output]
 
@@ -116,30 +107,3 @@ class VisorMiddleware(object):
         for name, value in headers:
             profresponse[name] = value
         return profresponse
-
-def main(args):
-    p = optparse.OptionParser(usage='geordi SCRIPT...', prog='geordi')
-    opts, args = p.parse_args(args)
-    if not args:
-        sys.stdout.write(p.get_usage())
-        return 2
-
-    script = args[0]
-    sys.argv[:] = args
-    sys.path.insert(0, os.path.dirname(script))
-
-    with open(script, 'rb') as f:
-        code = compile(f.read(), script, 'exec')
-    globs = {'__file__': script,
-             '__name__': '__main__',
-             '__package__': None}
-    def app(environ, start_response):
-        eval(code, globs)
-
-    app = VisorMiddleware(app, allowedfunc=lambda environ: True)
-    server = make_server('localhost', 41000, app)
-    webbrowser.open('http://localhost:41000')
-    server.handle_request()
-
-if __name__ == '__main__':
-    sys.exit(main(sys.argv[1:]))
