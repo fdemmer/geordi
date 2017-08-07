@@ -1,4 +1,18 @@
 #!/usr/bin/env python
+import optparse
+import os
 import sys
-import geordi
-sys.exit(geordi.main(sys.argv[1:]))
+
+from geordi.shell import execute_and_serve
+
+if __name__ == '__main__':
+    p = optparse.OptionParser(usage='geordi SCRIPT...', prog='geordi')
+    opts, args = p.parse_args(sys.argv[1:])
+    if not args:
+        sys.stdout.write(p.get_usage())
+        sys.exit(2)
+
+    script = args[0]
+    sys.argv[:] = args
+    sys.path.insert(0, os.path.dirname(script))
+    sys.exit(execute_and_serve(script))

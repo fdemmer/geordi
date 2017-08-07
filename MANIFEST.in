@@ -1,1 +1,3 @@
-include .pylintrc Makefile *.txt
+include .pylintrc Makefile *.txt README.rst
+recursive-include geordi/static *
+recursive-include geordi/templates *

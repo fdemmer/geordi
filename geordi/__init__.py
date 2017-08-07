@@ -2,19 +2,16 @@
 
 import cProfile
 import marshal
-import optparse
-import os
 import socket
 import subprocess
-import sys
 import tempfile
-import webbrowser
-from wsgiref.simple_server import make_server
 
 try:
     from urllib.parse import parse_qs
 except ImportError:
     from urlparse import parse_qs
+
+from django.template.loader import render_to_string
 
 __all__ = ['HolodeckException', 'VisorMiddleware']
 
@@ -38,26 +35,27 @@ class VisorMiddleware(object):
     def _response(self, profiler):
         profiler.create_stats()
 
-        with tempfile.NamedTemporaryFile(prefix='geordi-', suffix='.pstats',
-                                         delete=False) as stats:
+        with tempfile.NamedTemporaryFile(prefix='geordi-', suffix='.pstats'
+                                         ) as stats:
             stats.write(marshal.dumps(profiler.stats))
-            statsfn = stats.name
+            stats.flush()
 
-        # XXX: Formatting a shell string like this isn't ideal.
-        cmd = ('gprof2dot.py -f pstats %s | dot -Tpdf'
-                % statsfn)
-        proc = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE,
-                                stdout=subprocess.PIPE)
-        output = proc.communicate()[0]
-        retcode = proc.poll()
-        if retcode:
-            raise HolodeckException('gprof2dot/dot exited with %d'
-                                    % retcode)
+            p = subprocess.Popen(['gprof2dot', '-f', 'pstats', stats.name],
+                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            p.stdin.close()
+            output = p.stdout.read()
+            retcode = p.wait()
+            if retcode:
+                raise HolodeckException('gprof2dot exited with %d'
+                                        % retcode)
 
-        headers = [('Content-Type', 'application/pdf'),
-                   ('X-Geordi-Served-By', socket.gethostname()),
-                   ('X-Geordi-Pstats-Filename', statsfn)]
-        return headers, output
+            body = str(render_to_string('geordi/geordi.html',
+                                        {'dotstring': output}).encode('utf-8'))
+            headers = [('Content-Type', 'text/html; charset=utf-8'),
+                       ('X-Geordi-Served-By', socket.gethostname()),
+                       ('Content-Length', str(len(body)))]
+
+            return headers, body
 
     def _allowed(self, environ):
         qs = parse_qs(environ['QUERY_STRING'], keep_blank_values=True)
@@ -109,30 +107,3 @@ class VisorMiddleware(object):
         for name, value in headers:
             profresponse[name] = value
         return profresponse
-
-def main(args):
-    p = optparse.OptionParser(usage='geordi SCRIPT...', prog='geordi')
-    opts, args = p.parse_args(args)
-    if not args:
-        sys.stdout.write(p.get_usage())
-        return 2
-
-    script = args[0]
-    sys.argv[:] = args
-    sys.path.insert(0, os.path.dirname(script))
-
-    with open(script, 'rb') as f:
-        code = compile(f.read(), script, 'exec')
-    globs = {'__file__': script,
-             '__name__': '__main__',
-             '__package__': None}
-    def app(environ, start_response):
-        eval(code, globs)
-
-    app = VisorMiddleware(app, allowedfunc=lambda environ: True)
-    server = make_server('localhost', 41000, app)
-    webbrowser.open('http://localhost:41000')
-    server.handle_request()
-
-if __name__ == '__main__':
-    sys.exit(main(sys.argv[1:]))
